@@ -46,11 +46,23 @@ const alova = createAlova({
 
       const data = response.data
 
-      if (data.code !== Number(process.env.VITE_API_SUCCESS_CODE)) {
-        throw data
+      // 支持两种响应格式：
+      // 1. 新格式：{ status: true/false, code: null/errorCode, message: null/errorMsg, data: {...} }
+      // 2. 旧格式：{ code: 200/errorCode, data: {...} }
+      if (data.status !== undefined) {
+        // 新格式：status为false表示失败
+        if (data.status === false) {
+          throw data
+        }
+        // status为true表示成功，直接返回data
+        return data
+      } else {
+        // 旧格式：检查code
+        if (data.code !== Number(process.env.VITE_API_SUCCESS_CODE)) {
+          throw data
+        }
+        return data
       }
-
-      return data
     },
 
     onError: (error) => {

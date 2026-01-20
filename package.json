@@ -1,15 +1,12 @@
 {
-  "name": "vite-uniapp-template",
+  "name": "e-dove",
   "type": "commonjs",
-  "version": "3.1.1",
+  "version": "1.0.0",
   "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39",
-  "description": "以实用为先的 uni-app 起手模板",
+  "description": "快捷方便的快递驿站系统",
   "author": {
-    "name": "viarotel",
-    "email": "viarotel@qq.com",
-    "url": "https://viarotel.eu.org/",
-    "wechat": "viarotel",
-    "address": "河南省郑州市"
+    "name": "Criel",
+    "email": "chencriel@qq.com"
   },
   "scripts": {
     "lint": "eslint",

@@ -1,8 +1,8 @@
 import { author, description, version } from '../../package.json'
 
-export const primaryColor = '#028d71'
+export const primaryColor = '#3b82f6'
 
-export const appName = 'vite-uniapp-template'
+export const appName = 'e-dove'
 
 export const appVersion = version
 

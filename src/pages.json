@@ -157,7 +157,7 @@
   ],
   "tabBar": {
     "color": "#999999",
-    "selectedColor": "#028d71",
+    "selectedColor": "#3b82f6",
     "backgroundColor": "#FFFFFF",
     "list": [
       {
@@ -181,7 +181,7 @@
     ]
   },
   "globalStyle": {
-    "navigationBarTitleText": "vite-uniapp-template",
+    "navigationBarTitleText": "e-dove",
     "navigationBarBackgroundColor": "#FFFFFF",
     "navigationBarTextStyle": "black",
     "backgroundColor": "#F8F8F8"

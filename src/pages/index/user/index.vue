@@ -1,13 +1,21 @@
 <script setup>
 import { showModal, showToast } from '@uni-helper/uni-promises'
+import { computed, onMounted, ref } from 'vue'
 import { appExtra, appVersion } from '@/settings/index.mjs'
 import { sleep } from '@/utils'
 
 const userStore = useUserStore()
 const router = useRouter()
+const isLoading = ref(false)
 
 const isLogin = computed(() => !!userStore.token)
 const userInfo = computed(() => userStore.userInfo)
+const avatarSrc = computed(() => {
+  if (userInfo.value && userInfo.value.avatarUrl) {
+    return userInfo.value.avatarUrl
+  }
+  return '~@assets/images/avatar.gif'
+})
 
 const systemItems = computed(() => [
   {
@@ -26,6 +34,40 @@ const systemItems = computed(() => [
     path: '/preference',
   },
 ])
+
+// 获取用户信息
+async function fetchUserInfo() {
+  if (!isLogin.value) {
+    return
+  }
+
+  // 如果已有用户信息，不再重复获取
+  if (userInfo.value && userInfo.value.userId) {
+    return
+  }
+
+  try {
+    isLoading.value = true
+    await userStore.getUserData()
+  }
+  catch (error) {
+    console.error('获取用户信息失败:', error)
+    await showToast({
+      title: error.message || '获取用户信息失败',
+      icon: 'error',
+    })
+  }
+  finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  // 页面加载时，如果已登录但用户信息为空，则获取用户信息
+  if (isLogin.value) {
+    fetchUserInfo()
+  }
+})
 
 function handleMenuItemClick(item) {
   router.push({
@@ -49,6 +91,13 @@ function handleLogin() {
 
 function onEnterpriseClick() {
   window.open(appExtra.url)
+}
+
+function onAvatarError() {
+  // 头像加载失败时使用默认头像
+  // 注意：在微信小程序中，不能直接修改image的src属性
+  // 可以通过v-if或重新绑定key来处理，这里先记录日志
+  console.log('头像加载失败，使用默认头像')
 }
 
 async function handleLogout() {
@@ -93,21 +142,27 @@ async function handleLogout() {
         class="relative flex items-center px-6 pb-12 pt-12"
         hover-class="opacity-90"
         @click="handleLogin"
+        @tap="handleLogin"
       >
         <view class="h-18 w-18 overflow-hidden border-2 border-white/30 rounded-full shadow-lg">
-          <image src="~@assets/images/avatar.gif" alt="用户头像" class="h-full w-full" />
+          <image
+            :src="avatarSrc"
+            alt="用户头像"
+            class="h-full w-full"
+            @error="onAvatarError"
+          />
         </view>
 
         <view class="ml-4 flex-1">
-          <view v-if="isLogin" class="text-xl text-white font-bold">
+          <view v-if="isLogin && userInfo && userInfo.username" class="text-xl text-white font-bold">
             {{ userInfo.username }}
           </view>
           <view v-else class="flex items-center">
             <view class="text-xl text-white font-medium">
-              立即登录
+              {{ isLogin ? '加载中...' : '立即登录' }}
             </view>
             <view class="ml-2 rounded-full bg-white/20 px-3 py-1 text-xs text-white">
-              未登录
+              {{ isLogin ? '已登录' : '未登录' }}
             </view>
           </view>
         </view>

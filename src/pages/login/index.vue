@@ -10,11 +10,57 @@ const richView = useRichView()
 
 const agreed = ref(false)
 const isLoading = ref(false)
+const account = ref('')
+const password = ref('')
+
+// 验证手机号格式
+function isValidPhone(phone) {
+  const phoneRegex = /^1[3-9]\d{9}$/
+  return phoneRegex.test(phone)
+}
+
+// 验证邮箱格式
+function isValidEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/
+  return emailRegex.test(email)
+}
+
+// 验证密码长度
+function isValidPassword(pwd) {
+  return pwd.length >= 6
+}
+
+// 验证输入
+function validateInputs() {
+  if (!account.value.trim()) {
+    return '请输入手机号或邮箱'
+  }
+
+  if (!isValidPhone(account.value) && !isValidEmail(account.value)) {
+    return '请输入正确的手机号或邮箱格式'
+  }
+
+  if (!password.value) {
+    return '请输入密码'
+  }
+
+  if (!isValidPassword(password.value)) {
+    return '密码长度不能少于6位'
+  }
+
+  if (!agreed.value) {
+    return '请先同意服务协议'
+  }
+
+  return null
+}
 
 async function onLoginClick() {
-  if (!agreed.value) {
+  // 验证输入
+  const errorMsg = validateInputs()
+  if (errorMsg) {
     await showToast({
-      title: '请先同意服务协议',
+      title: errorMsg,
       icon: 'none',
     })
     return
@@ -23,7 +69,23 @@ async function onLoginClick() {
   try {
     isLoading.value = true
 
-    await userStore.login()
+    // 构建登录参数
+    const credentials = {
+      password: password.value,
+    }
+
+    // 判断是手机号还是邮箱
+    if (isValidPhone(account.value)) {
+      credentials.phone = account.value
+    }
+    else {
+      credentials.email = account.value
+    }
+
+    // phoneOtp参数暂留空，后续开发使用
+    // credentials.phoneOtp = ''
+
+    await userStore.login(credentials)
 
     await showToast({
       title: '登录成功',
@@ -38,7 +100,7 @@ async function onLoginClick() {
   }
   catch (error) {
     await showToast({
-      title: '登录失败，请重试',
+      title: error.message || '登录失败，请重试',
       icon: 'error',
     })
   }
@@ -118,6 +180,28 @@ function onProjectClick() {
         </view>
 
         <view class="space-y-4">
+          <view class="space-y-4">
+            <view class="overflow-hidden rounded-2xl bg-white shadow-lg">
+              <input
+                v-model="account"
+                type="text"
+                placeholder="请输入手机号或邮箱"
+                class="h-12 w-full border-0 px-5 py-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
+                :disabled="isLoading"
+              />
+            </view>
+
+            <view class="overflow-hidden rounded-2xl bg-white shadow-lg">
+              <input
+                v-model="password"
+                type="password"
+                placeholder="请输入密码（至少6位）"
+                class="h-12 w-full border-0 px-5 py-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
+                :disabled="isLoading"
+              />
+            </view>
+          </view>
+
           <view class="">
             <button
               class="relative w-full overflow-hidden rounded-2xl from-primary-500 to-primary-400 bg-gradient-to-r px-6 py-4 font-semibold shadow-lg transition-all duration-200 active:scale-98 disabled:cursor-not-allowed !text-white disabled:opacity-70"
@@ -127,8 +211,8 @@ function onProjectClick() {
             >
               <view class="flex items-center justify-center space-x-3">
                 <view v-if="isLoading" class="i-carbon-fade h-5 w-5 animate-spin bg-white"></view>
-                <view v-else class="i-carbon-phone h-5 w-5"></view>
-                <text>{{ isLoading ? '登录中...' : '手机号快捷登录' }}</text>
+                <view v-else class="i-carbon-login h-5 w-5"></view>
+                <text>{{ isLoading ? '登录中...' : '登录' }}</text>
               </view>
 
               <view class="absolute inset-0 from-transparent via-white to-transparent bg-gradient-to-r opacity-0 transition-all duration-500 -translate-x-full group-active:translate-x-full group-active:opacity-20"></view>
@@ -161,14 +245,6 @@ function onProjectClick() {
 
       <view class="px-6 pb-8">
         <view class="text-center space-y-3">
-          <view class="mb-6 flex items-center space-x-4">
-            <view class="h-px flex-1 bg-gray-200"></view>
-            <text class="px-3 text-xs text-gray-400">
-              技术支持
-            </text>
-            <view class="h-px flex-1 bg-gray-200"></view>
-          </view>
-
           <view class="flex items-center justify-center space-x-2">
             <text class="text-sm text-gray-500">
               Powered by
@@ -201,10 +277,6 @@ function onProjectClick() {
   50% {
     transform: translateY(-10px);
   }
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
 }
 
 @keyframes spin {

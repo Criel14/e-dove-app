@@ -1,9 +1,9 @@
 import alova from '@/api/index.js'
 
-export function postUserLogin() {
-  return alova.Post('/login')
+export function postUserLogin(data) {
+  return alova.Post('/auth/sign-in', data)
 }
 
 export function getUserInfo() {
-  return alova.Get('/getInfo')
+  return alova.Get('/user/info')
 }
