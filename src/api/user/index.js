@@ -8,6 +8,10 @@ export function postAuthOtp(data) {
   return alova.Post('/auth/otp', data)
 }
 
+export function postUserRegister(data) {
+  return alova.Post('/auth/register', data)
+}
+
 export function getUserInfo() {
   return alova.Get('/user/info')
 }

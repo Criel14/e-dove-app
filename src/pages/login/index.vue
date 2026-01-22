@@ -1,7 +1,7 @@
 <script setup>
 import { showToast } from '@uni-helper/uni-promises'
 import { onUnmounted } from 'vue'
-import { postAuthOtp } from '@/api/user/index.js'
+import { postAuthOtp, postUserRegister } from '@/api/user/index.js'
 import { appDescription, appExtra, appName, appVersion } from '@/settings/index.mjs'
 import { sleep } from '@/utils'
 
@@ -21,6 +21,17 @@ const phone = ref('')
 const phoneOtp = ref('')
 const countdown = ref(0)
 const countdownTimer = ref(null)
+
+// 注册相关状态
+const authMode = ref('login') // login | register
+const registerUsername = ref('')
+const registerPassword = ref('')
+const registerPhone = ref('')
+const registerEmail = ref('')
+const registerPhoneOtp = ref('')
+const registerEmailOtp = ref('')
+const emailCountdown = ref(0)
+const emailCountdownTimer = ref(null)
 
 // 验证手机号格式
 function isValidPhone(phone) {
@@ -59,8 +70,17 @@ function startCountdown() {
 
 // 获取验证码
 async function getOtp() {
+  // 根据模式选择手机号
+  let targetPhone = ''
+  if (authMode.value === 'register') {
+    targetPhone = registerPhone.value
+  }
+  else {
+    targetPhone = phone.value
+  }
+
   // 验证手机号
-  if (!phone.value.trim()) {
+  if (!targetPhone.trim()) {
     await showToast({
       title: '请输入手机号',
       icon: 'none',
@@ -68,7 +88,7 @@ async function getOtp() {
     return
   }
 
-  if (!isValidPhone(phone.value)) {
+  if (!isValidPhone(targetPhone)) {
     await showToast({
       title: '请输入正确的手机号格式',
       icon: 'none',
@@ -82,7 +102,7 @@ async function getOtp() {
   }
 
   try {
-    await postAuthOtp({ phoneOrEmail: phone.value })
+    await postAuthOtp({ phoneOrEmail: targetPhone })
     await showToast({
       title: '验证码已发送',
       icon: 'success',
@@ -95,6 +115,186 @@ async function getOtp() {
       icon: 'error',
     })
   }
+}
+
+// 开始邮箱验证码倒计时
+function startEmailCountdown() {
+  emailCountdown.value = 60
+  emailCountdownTimer.value = setInterval(() => {
+    emailCountdown.value--
+    if (emailCountdown.value <= 0) {
+      clearInterval(emailCountdownTimer.value)
+      emailCountdownTimer.value = null
+    }
+  }, 1000)
+}
+
+// 获取邮箱验证码
+async function getEmailOtp() {
+  // 验证邮箱
+  if (!registerEmail.value.trim()) {
+    await showToast({
+      title: '请输入邮箱',
+      icon: 'none',
+    })
+    return
+  }
+
+  if (!isValidEmail(registerEmail.value)) {
+    await showToast({
+      title: '请输入正确的邮箱格式',
+      icon: 'none',
+    })
+    return
+  }
+
+  // 防止重复点击
+  if (emailCountdown.value > 0) {
+    return
+  }
+
+  try {
+    await postAuthOtp({ phoneOrEmail: registerEmail.value })
+    await showToast({
+      title: '验证码已发送到邮箱',
+      icon: 'success',
+    })
+    startEmailCountdown()
+  }
+  catch (error) {
+    await showToast({
+      title: error.message || '获取验证码失败，请重试',
+      icon: 'error',
+    })
+  }
+}
+
+// 验证注册输入
+function validateRegisterInputs() {
+  // 手机号必填
+  if (!registerPhone.value.trim()) {
+    return '请输入手机号'
+  }
+
+  if (!isValidPhone(registerPhone.value)) {
+    return '请输入正确的手机号格式'
+  }
+
+  // 手机验证码必填
+  if (!registerPhoneOtp.value.trim()) {
+    return '请输入手机验证码'
+  }
+
+  if (!isValidOtp(registerPhoneOtp.value)) {
+    return '手机验证码格式错误，请输入6位数字'
+  }
+
+  // 邮箱（可选）和邮箱验证码（可选）
+  if (registerEmail.value.trim()) {
+    // 如果提供了邮箱，验证邮箱格式
+    if (!isValidEmail(registerEmail.value)) {
+      return '请输入正确的邮箱格式'
+    }
+
+    // 如果提供了邮箱验证码，验证验证码格式
+    if (registerEmailOtp.value.trim() && !isValidOtp(registerEmailOtp.value)) {
+      return '邮箱验证码格式错误，请输入6位数字'
+    }
+  }
+  // 如果提供了邮箱验证码但没有提供邮箱，提示用户先填写邮箱
+  else if (registerEmailOtp.value.trim()) {
+    return '请先填写邮箱'
+  }
+
+  // 如果提供了用户名，检查长度（可选）
+  if (registerUsername.value.trim() && registerUsername.value.length < 3) {
+    return '用户名长度不能少于3位'
+  }
+
+  // 如果提供了密码，检查长度（可选）
+  if (registerPassword.value.trim() && !isValidPassword(registerPassword.value)) {
+    return '密码长度不能少于6位'
+  }
+
+  if (!agreed.value) {
+    return '请先同意服务协议'
+  }
+
+  return null
+}
+
+// 注册
+async function onRegisterClick() {
+  // 验证输入
+  const errorMsg = validateRegisterInputs()
+  if (errorMsg) {
+    await showToast({
+      title: errorMsg,
+      icon: 'none',
+    })
+    return
+  }
+
+  try {
+    isLoading.value = true
+
+    // 构建注册参数
+    const registerData = {
+      phone: registerPhone.value,
+      phoneOtp: registerPhoneOtp.value,
+    }
+
+    // 可选字段
+    if (registerUsername.value.trim()) {
+      registerData.username = registerUsername.value
+    }
+
+    if (registerPassword.value.trim()) {
+      registerData.password = registerPassword.value
+    }
+
+    if (registerEmail.value.trim()) {
+      registerData.email = registerEmail.value
+      registerData.emailOtp = registerEmailOtp.value
+    }
+
+    const res = await postUserRegister(registerData)
+
+    // 注册成功后自动登录（后端会返回token）
+    if (res.status) {
+      // 更新token到store
+      userStore.token = res.data.accessToken
+      userStore.refreshToken = res.data.refreshToken || ''
+
+      await showToast({
+        title: '注册成功，已自动登录',
+        icon: 'success',
+      })
+
+      await sleep(500)
+
+      router.pushTab({
+        path: '/pages/index/index',
+      })
+    }
+    else {
+      throw new Error(res.message || '注册失败')
+    }
+  }
+  catch (error) {
+    await showToast({
+      title: error.message || '注册失败，请重试',
+      icon: 'error',
+    })
+  }
+  finally {
+    isLoading.value = false
+  }
+}
+
+// 切换登录/注册模式
+function toggleAuthMode() {
+  authMode.value = authMode.value === 'login' ? 'register' : 'login'
 }
 
 // 验证输入
@@ -246,6 +446,11 @@ onUnmounted(() => {
     clearInterval(countdownTimer.value)
     countdownTimer.value = null
   }
+
+  if (emailCountdownTimer.value) {
+    clearInterval(emailCountdownTimer.value)
+    emailCountdownTimer.value = null
+  }
 })
 </script>
 
@@ -260,7 +465,7 @@ onUnmounted(() => {
       <view class="flex flex-1 flex-col justify-center px-6 py-12">
         <view class="mb-12 text-center">
           <view class="relative mb-6 inline-block">
-            <view class="mx-auto h-24 w-24 flex items-center justify-center rounded-3xl bg-white shadow-lg">
+            <view class="mx-auto h-24 w-24 flex items-center justify-center rounded-3xl bg-white shadow-md">
               <image
                 src="/static/images/logo.png"
                 alt="App Logo"
@@ -281,68 +486,161 @@ onUnmounted(() => {
         </view>
 
         <view class="space-y-4">
-          <!-- 登录方式切换 -->
-          <view class="flex rounded-2xl">
-            <view
-              class="flex-1 rounded-xl py-3 text-center text-sm font-medium transition-all duration-200"
-              :class="loginMode === 'accountPassword' ? 'bg-primary-500 text-white shadow' : 'text-gray-600 active:bg-gray-100'"
-              @click="loginMode = 'accountPassword'"
-            >
-              账号密码登录
+          <!-- 登录/注册模式 -->
+          <view v-if="authMode === 'login'">
+            <!-- 登录方式切换 -->
+            <view class="flex rounded-2xl mb-2">
+              <view
+                class="flex-1 rounded-xl py-3 text-center text-sm font-medium transition-all duration-200"
+                :class="loginMode === 'accountPassword' ? 'bg-primary-500 text-white shadow' : 'text-gray-600 active:bg-gray-100'"
+                @click="loginMode = 'accountPassword'"
+              >
+                账号密码登录
+              </view>
+              <view
+                class="flex-1 rounded-xl py-3 text-center text-sm font-medium transition-all duration-200"
+                :class="loginMode === 'phoneOtp' ? 'bg-primary-500 text-white shadow' : 'text-gray-600 active:bg-gray-100'"
+                @click="loginMode = 'phoneOtp'"
+              >
+                手机验证码登录
+              </view>
             </view>
-            <view
-              class="flex-1 rounded-xl py-3 text-center text-sm font-medium transition-all duration-200"
-              :class="loginMode === 'phoneOtp' ? 'bg-primary-500 text-white shadow' : 'text-gray-600 active:bg-gray-100'"
-              @click="loginMode = 'phoneOtp'"
-            >
-              手机验证码登录
+            <view class="space-y-4">
+              <!-- 账号密码登录 -->
+              <view v-if="loginMode === 'accountPassword'" class="space-y-4">
+                <view class="overflow-hidden rounded-2xl bg-white shadow-md">
+                  <input
+                    v-model="account"
+                    type="text"
+                    placeholder="请输入手机号或邮箱"
+                    class="h-12 w-full border-0 px-5 py-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
+                    :disabled="isLoading"
+                  />
+                </view>
+
+                <view class="overflow-hidden rounded-2xl bg-white shadow-md">
+                  <input
+                    v-model="password"
+                    type="safe-password"
+                    placeholder="请输入密码（至少6位）"
+                    class="h-12 w-full border-0 px-5 py-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
+                    :disabled="isLoading"
+                  />
+                </view>
+              </view>
+
+              <!-- 手机验证码登录 -->
+              <view v-else class="space-y-4">
+                <view class="overflow-hidden rounded-2xl bg-white shadow-md">
+                  <input
+                    v-model="phone"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="11"
+                    placeholder="请输入手机号"
+                    class="h-12 w-full border-0 px-5 py-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
+                    :disabled="isLoading"
+                  />
+                </view>
+
+                <view class="overflow-hidden rounded-2xl bg-white shadow-md flex">
+                  <input
+                    v-model="phoneOtp"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="6"
+                    placeholder="请输入验证码"
+                    class="h-12 flex-1 border-0 px-5 py-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
+                    :disabled="isLoading"
+                  />
+                  <button
+                    class="flex items-center justify-center px-4 text-sm font-medium text-primary-600 disabled:text-gray-400 disabled:cursor-not-allowed"
+                    :disabled="countdown > 0 || isLoading"
+                    @click="getOtp"
+                  >
+                    {{ countdown > 0 ? `${countdown}秒后重新获取` : '获取验证码' }}
+                  </button>
+                </view>
+              </view>
+            </view>
+
+            <view class="">
+              <button
+                class="relative w-full mt-3 overflow-hidden rounded-2xl from-primary-500 to-primary-400 bg-gradient-to-r px-6 py-4 font-semibold shadow-md transition-all duration-200 active:scale-98 disabled:cursor-not-allowed !text-white disabled:opacity-70"
+                :class="{ 'shadow-xl': !isLoading }"
+                :disabled="isLoading"
+                @click="onLoginClick"
+              >
+                <view class="flex items-center justify-center space-x-3">
+                  <view v-if="isLoading" class="i-carbon-fade h-5 w-5 animate-spin bg-white"></view>
+                  <view v-else class="i-carbon-login h-5 w-5"></view>
+                  <text>{{ isLoading ? '登录中...' : '登录' }}</text>
+                </view>
+
+                <view class="absolute inset-0 from-transparent via-white to-transparent bg-gradient-to-r opacity-0 transition-all duration-500 -translate-x-full group-active:translate-x-full group-active:opacity-20"></view>
+              </button>
+            </view>
+
+            <!-- 切换到注册 -->
+            <view class="text-center pt-2">
+              <text class="text-sm text-gray-600">
+                没有账户？
+                <text
+                  class="text-primary-600 font-medium transition-colors duration-200 active:text-primary-700"
+                  @click="toggleAuthMode"
+                >
+                  免费注册
+                </text>
+              </text>
             </view>
           </view>
-          <view class="space-y-4">
-            <!-- 账号密码登录 -->
-            <view v-if="loginMode === 'accountPassword'" class="space-y-4">
-              <view class="overflow-hidden rounded-2xl bg-white shadow-lg">
+
+          <!-- 注册模式 -->
+          <view v-else>
+            <view class="space-y-4">
+              <!-- 用户名（可选） -->
+              <view class="overflow-hidden rounded-2xl bg-white shadow-md">
                 <input
-                  v-model="account"
+                  v-model="registerUsername"
                   type="text"
-                  placeholder="请输入手机号或邮箱"
+                  placeholder="用户名（可选，至少3位）"
                   class="h-12 w-full border-0 px-5 py-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
                   :disabled="isLoading"
                 />
               </view>
 
-              <view class="overflow-hidden rounded-2xl bg-white shadow-lg">
+              <!-- 密码（可选） -->
+              <view class="overflow-hidden rounded-2xl bg-white shadow-md">
                 <input
-                  v-model="password"
+                  v-model="registerPassword"
                   type="safe-password"
-                  placeholder="请输入密码（至少6位）"
+                  placeholder="密码（可选，至少6位）"
                   class="h-12 w-full border-0 px-5 py-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
                   :disabled="isLoading"
                 />
               </view>
-            </view>
 
-            <!-- 手机验证码登录 -->
-            <view v-else class="space-y-4">
-              <view class="overflow-hidden rounded-2xl bg-white shadow-lg">
+              <!-- 手机号（必填） -->
+              <view class="overflow-hidden rounded-2xl bg-white shadow-md">
                 <input
-                  v-model="phone"
+                  v-model="registerPhone"
                   type="text"
                   inputmode="numeric"
                   maxlength="11"
-                  placeholder="请输入手机号"
+                  placeholder="手机号（必填）"
                   class="h-12 w-full border-0 px-5 py-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
                   :disabled="isLoading"
                 />
               </view>
 
-              <view class="overflow-hidden rounded-2xl bg-white shadow-lg flex">
+              <!-- 手机验证码（必填） -->
+              <view class="overflow-hidden rounded-2xl bg-white shadow-md flex">
                 <input
-                  v-model="phoneOtp"
+                  v-model="registerPhoneOtp"
                   type="text"
                   inputmode="numeric"
                   maxlength="6"
-                  placeholder="请输入验证码"
+                  placeholder="手机验证码（必填）"
                   class="h-12 flex-1 border-0 px-5 py-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
                   :disabled="isLoading"
                 />
@@ -354,26 +652,71 @@ onUnmounted(() => {
                   {{ countdown > 0 ? `${countdown}秒后重新获取` : '获取验证码' }}
                 </button>
               </view>
+
+              <!-- 邮箱（可选） -->
+              <view class="overflow-hidden rounded-2xl bg-white shadow-md">
+                <input
+                  v-model="registerEmail"
+                  type="text"
+                  placeholder="邮箱（可选）"
+                  class="h-12 w-full border-0 px-5 py-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
+                  :disabled="isLoading"
+                />
+              </view>
+
+              <!-- 邮箱验证码（可选） -->
+              <view class="overflow-hidden rounded-2xl bg-white shadow-md flex">
+                <input
+                  v-model="registerEmailOtp"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="6"
+                  placeholder="邮箱验证码（可选）"
+                  class="h-12 flex-1 border-0 px-5 py-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
+                  :disabled="isLoading"
+                />
+                <button
+                  class="flex items-center justify-center px-4 text-sm font-medium text-primary-600 disabled:text-gray-400 disabled:cursor-not-allowed"
+                  :disabled="emailCountdown > 0 || isLoading"
+                  @click="getEmailOtp"
+                >
+                  {{ emailCountdown > 0 ? `${emailCountdown}秒后重新获取` : '获取验证码' }}
+                </button>
+              </view>
+            </view>
+
+            <view class="">
+              <button
+                class="relative w-full mt-3 overflow-hidden rounded-2xl from-primary-500 to-primary-400 bg-gradient-to-r px-6 py-4 font-semibold shadow-md transition-all duration-200 active:scale-98 disabled:cursor-not-allowed !text-white disabled:opacity-70"
+                :class="{ 'shadow-xl': !isLoading }"
+                :disabled="isLoading"
+                @click="onRegisterClick"
+              >
+                <view class="flex items-center justify-center space-x-3">
+                  <view v-if="isLoading" class="i-carbon-fade h-5 w-5 animate-spin bg-white"></view>
+                  <view v-else class="i-carbon-user-follow h-5 w-5"></view>
+                  <text>{{ isLoading ? '注册中...' : '注册' }}</text>
+                </view>
+
+                <view class="absolute inset-0 from-transparent via-white to-transparent bg-gradient-to-r opacity-0 transition-all duration-500 -translate-x-full group-active:translate-x-full group-active:opacity-20"></view>
+              </button>
+            </view>
+
+            <!-- 切换到登录 -->
+            <view class="text-center pt-2">
+              <text class="text-sm text-gray-600">
+                已有账户？
+                <text
+                  class="text-primary-600 font-medium transition-colors duration-200 active:text-primary-700"
+                  @click="toggleAuthMode"
+                >
+                  前去登录
+                </text>
+              </text>
             </view>
           </view>
 
-          <view class="">
-            <button
-              class="relative w-full overflow-hidden rounded-2xl from-primary-500 to-primary-400 bg-gradient-to-r px-6 py-4 font-semibold shadow-lg transition-all duration-200 active:scale-98 disabled:cursor-not-allowed !text-white disabled:opacity-70"
-              :class="{ 'shadow-xl': !isLoading }"
-              :disabled="isLoading"
-              @click="onLoginClick"
-            >
-              <view class="flex items-center justify-center space-x-3">
-                <view v-if="isLoading" class="i-carbon-fade h-5 w-5 animate-spin bg-white"></view>
-                <view v-else class="i-carbon-login h-5 w-5"></view>
-                <text>{{ isLoading ? '登录中...' : '登录' }}</text>
-              </view>
-
-              <view class="absolute inset-0 from-transparent via-white to-transparent bg-gradient-to-r opacity-0 transition-all duration-500 -translate-x-full group-active:translate-x-full group-active:opacity-20"></view>
-            </button>
-          </view>
-
+          <!-- 协议同意（共用） -->
           <view class="flex items-center px-2 space-x-2">
             <view
               class="h-5 w-5 flex flex-shrink-0 items-center justify-center border-2 border-gray-300 rounded transition-all duration-200 active:scale-95"
