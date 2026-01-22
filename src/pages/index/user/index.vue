@@ -144,7 +144,7 @@ async function handleLogout() {
         @click="handleLogin"
         @tap="handleLogin"
       >
-        <view class="h-18 w-18 overflow-hidden border-2 border-white/30 rounded-full shadow-lg">
+        <view class="h-18 w-18 overflow-hidden bg-white border-2 border-white/30 rounded-full shadow-lg">
           <image
             :src="avatarSrc"
             alt="用户头像"

@@ -20,12 +20,12 @@ export default defineUniPages({
       },
     },
     {
-      path: 'pages/index/example/index',
-      aliasPath: '/example',
-      name: 'example',
+      path: 'pages/index/barcode/index',
+      aliasPath: '/barcode',
+      name: 'barcode',
       style: {
         navigationStyle: 'custom',
-        navigationBarTitleText: '示例',
+        navigationBarTitleText: '身份码',
       },
     },
     {
@@ -167,10 +167,10 @@ export default defineUniPages({
         text: '主页',
       },
       {
-        iconPath: 'static/images/tabbar/example.png',
-        selectedIconPath: 'static/images/tabbar/example-active.png',
-        pagePath: 'pages/index/example/index',
-        text: '示例',
+        iconPath: 'static/images/tabbar/barcode.png',
+        selectedIconPath: 'static/images/tabbar/barcode-active.png',
+        pagePath: 'pages/index/barcode/index',
+        text: '身份码',
       },
       {
         iconPath: 'static/images/tabbar/user.png',
