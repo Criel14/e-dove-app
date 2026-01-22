@@ -56,7 +56,8 @@ const alova = createAlova({
         }
         // status为true表示成功，直接返回data
         return data
-      } else {
+      }
+      else {
         // 旧格式：检查code
         if (data.code !== Number(process.env.VITE_API_SUCCESS_CODE)) {
           throw data

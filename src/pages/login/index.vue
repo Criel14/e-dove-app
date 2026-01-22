@@ -1,5 +1,7 @@
 <script setup>
 import { showToast } from '@uni-helper/uni-promises'
+import { onUnmounted } from 'vue'
+import { postAuthOtp } from '@/api/user/index.js'
 import { appDescription, appExtra, appName, appVersion } from '@/settings/index.mjs'
 import { sleep } from '@/utils'
 
@@ -12,6 +14,13 @@ const agreed = ref(false)
 const isLoading = ref(false)
 const account = ref('')
 const password = ref('')
+
+// 登录模式：accountPassword-账号密码登录，phoneOtp-手机验证码登录
+const loginMode = ref('accountPassword')
+const phone = ref('')
+const phoneOtp = ref('')
+const countdown = ref(0)
+const countdownTimer = ref(null)
 
 // 验证手机号格式
 function isValidPhone(phone) {
@@ -30,22 +39,101 @@ function isValidPassword(pwd) {
   return pwd.length >= 6
 }
 
+// 验证验证码格式（6位数字）
+function isValidOtp(otp) {
+  const otpRegex = /^\d{6}$/
+  return otpRegex.test(otp)
+}
+
+// 开始倒计时
+function startCountdown() {
+  countdown.value = 60
+  countdownTimer.value = setInterval(() => {
+    countdown.value--
+    if (countdown.value <= 0) {
+      clearInterval(countdownTimer.value)
+      countdownTimer.value = null
+    }
+  }, 1000)
+}
+
+// 获取验证码
+async function getOtp() {
+  // 验证手机号
+  if (!phone.value.trim()) {
+    await showToast({
+      title: '请输入手机号',
+      icon: 'none',
+    })
+    return
+  }
+
+  if (!isValidPhone(phone.value)) {
+    await showToast({
+      title: '请输入正确的手机号格式',
+      icon: 'none',
+    })
+    return
+  }
+
+  // 防止重复点击
+  if (countdown.value > 0) {
+    return
+  }
+
+  try {
+    await postAuthOtp({ phoneOrEmail: phone.value })
+    await showToast({
+      title: '验证码已发送',
+      icon: 'success',
+    })
+    startCountdown()
+  }
+  catch (error) {
+    await showToast({
+      title: error.message || '获取验证码失败，请重试',
+      icon: 'error',
+    })
+  }
+}
+
 // 验证输入
 function validateInputs() {
-  if (!account.value.trim()) {
-    return '请输入手机号或邮箱'
-  }
+  if (loginMode.value === 'accountPassword') {
+    // 账号密码登录验证
+    if (!account.value.trim()) {
+      return '请输入手机号或邮箱'
+    }
 
-  if (!isValidPhone(account.value) && !isValidEmail(account.value)) {
-    return '请输入正确的手机号或邮箱格式'
-  }
+    if (!isValidPhone(account.value) && !isValidEmail(account.value)) {
+      return '请输入正确的手机号或邮箱格式'
+    }
 
-  if (!password.value) {
-    return '请输入密码'
-  }
+    if (!password.value) {
+      return '请输入密码'
+    }
 
-  if (!isValidPassword(password.value)) {
-    return '密码长度不能少于6位'
+    if (!isValidPassword(password.value)) {
+      return '密码长度不能少于6位'
+    }
+  }
+  else {
+    // 手机验证码登录验证
+    if (!phone.value.trim()) {
+      return '请输入手机号'
+    }
+
+    if (!isValidPhone(phone.value)) {
+      return '请输入正确的手机号格式'
+    }
+
+    if (!phoneOtp.value.trim()) {
+      return '请输入验证码'
+    }
+
+    if (!isValidOtp(phoneOtp.value)) {
+      return '验证码格式错误，请输入6位数字'
+    }
   }
 
   if (!agreed.value) {
@@ -70,20 +158,25 @@ async function onLoginClick() {
     isLoading.value = true
 
     // 构建登录参数
-    const credentials = {
-      password: password.value,
-    }
+    const credentials = {}
 
-    // 判断是手机号还是邮箱
-    if (isValidPhone(account.value)) {
-      credentials.phone = account.value
+    if (loginMode.value === 'accountPassword') {
+      // 账号密码登录
+      credentials.password = password.value
+
+      // 判断是手机号还是邮箱
+      if (isValidPhone(account.value)) {
+        credentials.phone = account.value
+      }
+      else {
+        credentials.email = account.value
+      }
     }
     else {
-      credentials.email = account.value
+      // 手机验证码登录
+      credentials.phone = phone.value
+      credentials.phoneOtp = phoneOtp.value
     }
-
-    // phoneOtp参数暂留空，后续开发使用
-    // credentials.phoneOtp = ''
 
     await userStore.login(credentials)
 
@@ -146,6 +239,14 @@ function onProjectClick() {
     src: appExtra.url,
   })
 }
+
+// 组件卸载时清理定时器
+onUnmounted(() => {
+  if (countdownTimer.value) {
+    clearInterval(countdownTimer.value)
+    countdownTimer.value = null
+  }
+})
 </script>
 
 <template>
@@ -180,25 +281,79 @@ function onProjectClick() {
         </view>
 
         <view class="space-y-4">
+          <!-- 登录方式切换 -->
+          <view class="flex rounded-2xl">
+            <view
+              class="flex-1 rounded-xl py-3 text-center text-sm font-medium transition-all duration-200"
+              :class="loginMode === 'accountPassword' ? 'bg-primary-500 text-white shadow' : 'text-gray-600 active:bg-gray-100'"
+              @click="loginMode = 'accountPassword'"
+            >
+              账号密码登录
+            </view>
+            <view
+              class="flex-1 rounded-xl py-3 text-center text-sm font-medium transition-all duration-200"
+              :class="loginMode === 'phoneOtp' ? 'bg-primary-500 text-white shadow' : 'text-gray-600 active:bg-gray-100'"
+              @click="loginMode = 'phoneOtp'"
+            >
+              手机验证码登录
+            </view>
+          </view>
           <view class="space-y-4">
-            <view class="overflow-hidden rounded-2xl bg-white shadow-lg">
-              <input
-                v-model="account"
-                type="text"
-                placeholder="请输入手机号或邮箱"
-                class="h-12 w-full border-0 px-5 py-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
-                :disabled="isLoading"
-              />
+            <!-- 账号密码登录 -->
+            <view v-if="loginMode === 'accountPassword'" class="space-y-4">
+              <view class="overflow-hidden rounded-2xl bg-white shadow-lg">
+                <input
+                  v-model="account"
+                  type="text"
+                  placeholder="请输入手机号或邮箱"
+                  class="h-12 w-full border-0 px-5 py-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
+                  :disabled="isLoading"
+                />
+              </view>
+
+              <view class="overflow-hidden rounded-2xl bg-white shadow-lg">
+                <input
+                  v-model="password"
+                  type="safe-password"
+                  placeholder="请输入密码（至少6位）"
+                  class="h-12 w-full border-0 px-5 py-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
+                  :disabled="isLoading"
+                />
+              </view>
             </view>
 
-            <view class="overflow-hidden rounded-2xl bg-white shadow-lg">
-              <input
-                v-model="password"
-                type="password"
-                placeholder="请输入密码（至少6位）"
-                class="h-12 w-full border-0 px-5 py-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
-                :disabled="isLoading"
-              />
+            <!-- 手机验证码登录 -->
+            <view v-else class="space-y-4">
+              <view class="overflow-hidden rounded-2xl bg-white shadow-lg">
+                <input
+                  v-model="phone"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="11"
+                  placeholder="请输入手机号"
+                  class="h-12 w-full border-0 px-5 py-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
+                  :disabled="isLoading"
+                />
+              </view>
+
+              <view class="overflow-hidden rounded-2xl bg-white shadow-lg flex">
+                <input
+                  v-model="phoneOtp"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="6"
+                  placeholder="请输入验证码"
+                  class="h-12 flex-1 border-0 px-5 py-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
+                  :disabled="isLoading"
+                />
+                <button
+                  class="flex items-center justify-center px-4 text-sm font-medium text-primary-600 disabled:text-gray-400 disabled:cursor-not-allowed"
+                  :disabled="countdown > 0 || isLoading"
+                  @click="getOtp"
+                >
+                  {{ countdown > 0 ? `${countdown}秒后重新获取` : '获取验证码' }}
+                </button>
+              </view>
             </view>
           </view>
 
