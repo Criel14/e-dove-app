@@ -30,6 +30,8 @@ const alova = createAlova({
 
   baseURL: getBaseURL(),
 
+  cacheFor: null,
+
   beforeRequest: (method) => {
     const userStore = useUserStore()
 

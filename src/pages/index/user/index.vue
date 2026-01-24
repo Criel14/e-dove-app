@@ -1,6 +1,7 @@
 <script setup>
+import { onShow } from '@dcloudio/uni-app'
 import { showModal, showToast } from '@uni-helper/uni-promises'
-import { computed, onMounted, onShow, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { sleep } from '@/utils'
 
 const userStore = useUserStore()

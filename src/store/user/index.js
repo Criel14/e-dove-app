@@ -33,7 +33,6 @@ export const useUserStore = defineStore(
 
     async function getUserData() {
       const res = await getUserInfo()
-
       userInfo.value = res.data
     }
 
