@@ -1,6 +1,8 @@
 import uniappAdapter from '@alova/adapter-uniapp'
 import { isH5 } from '@uni-helper/uni-env'
+import { showToast } from '@uni-helper/uni-promises'
 import { createAlova } from 'alova'
+import { refresh } from '@/api/user/index.js'
 import mockRequestAdapter from './mock'
 
 function useAdapter(isMock) {
@@ -40,28 +42,52 @@ const alova = createAlova({
 
   responded: {
     onSuccess: async (response) => {
-      if (response.status >= 400) {
+      const userStore = useUserStore()
+
+      // 401请求重新定位到登录页
+      if (response.statusCode === 401) {
+        // 调用接口刷新token
+        const refreshToken = userStore.refreshToken
+        if (refreshToken) {
+          const data = {}
+          data.refreshToken = refreshToken
+
+          const result = await refresh(data)
+          if (result.status && result.data && result.data.accessToken && result.data.refreshToken) {
+            // 更新token
+            userStore.token = result.data.accessToken
+            userStore.refreshToken = result.data.refreshToken
+
+            // 重新发起请求
+            return await response.request()
+          }
+        }
+
+        // 清除token和用户信息
+        userStore.logout()
+        // 信息提示
+        await showToast({
+          title: '用户身份令牌已过期，请重新登陆',
+          icon: 'error',
+        })
+        // 跳转到登录页面，使用reLaunch关闭所有页面
+        uni.reLaunch({
+          url: '/pages/login/index',
+        })
+      }
+
+      if (response.statusCode >= 400) {
         throw new Error(response.statusText)
       }
 
       const data = response.data
-
-      // 支持两种响应格式：
-      // 1. 新格式：{ status: true/false, code: null/errorCode, message: null/errorMsg, data: {...} }
-      // 2. 旧格式：{ code: 200/errorCode, data: {...} }
+      // 响应格式：{ status: true/false, code: null/errorCode, message: null/errorMsg, data: {...} }
       if (data.status !== undefined) {
-        // 新格式：status为false表示失败
+        // status为false表示失败
         if (data.status === false) {
           throw data
         }
         // status为true表示成功，直接返回data
-        return data
-      }
-      else {
-        // 旧格式：检查code
-        if (data.code !== Number(process.env.VITE_API_SUCCESS_CODE)) {
-          throw data
-        }
         return data
       }
     },

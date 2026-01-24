@@ -15,7 +15,7 @@ export const useUserStore = defineStore(
 
       if (res.status) {
         token.value = res.data.accessToken
-        // 保存refreshToken，暂不处理逻辑
+        // 保存refreshToken
         refreshToken.value = res.data.refreshToken || ''
         // 用户信息将通过/user/info接口单独获取
         userInfo.value = {}

@@ -19,3 +19,7 @@ export function getUserInfo() {
 export function putUserUpdate(data) {
   return alova.Put('/user/update', data)
 }
+
+export function refresh(data) {
+  return alova.Post('/auth/refresh', data)
+}
