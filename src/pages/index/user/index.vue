@@ -1,7 +1,6 @@
 <script setup>
 import { showModal, showToast } from '@uni-helper/uni-promises'
 import { computed, onMounted, ref } from 'vue'
-import { appExtra, appVersion } from '@/settings/index.mjs'
 import { sleep } from '@/utils'
 
 const userStore = useUserStore()
@@ -16,24 +15,6 @@ const avatarSrc = computed(() => {
   }
   return '~@assets/images/avatar.gif'
 })
-
-const systemItems = computed(() => [
-  {
-    icon: 'i-carbon-customer-service',
-    text: '联系我们',
-    path: '/contact',
-  },
-  {
-    icon: 'i-carbon-chat',
-    text: '意见反馈',
-    path: '/feedback',
-  },
-  {
-    icon: 'i-carbon-settings',
-    text: '偏好设置',
-    path: '/preference',
-  },
-])
 
 // 获取用户信息
 async function fetchUserInfo() {
@@ -69,28 +50,13 @@ onMounted(() => {
   }
 })
 
-function handleMenuItemClick(item) {
-  router.push({
-    path: item.path,
-    query: item.query || {},
-  })
-}
-
 function handleLogin() {
-  if (isLogin.value) {
+  if (!isLogin.value) {
     router.push({
-      path: '/personal',
+      path: '/login',
     })
-    return false
   }
-
-  router.push({
-    path: '/login',
-  })
-}
-
-function onEnterpriseClick() {
-  window.open(appExtra.url)
+  // 已登录状态不执行任何操作，只显示用户信息
 }
 
 function onAvatarError() {
@@ -131,10 +97,7 @@ async function handleLogout() {
     <view
       class="relative overflow-hidden"
     >
-      <view class="absolute inset-0 bg-primary-500"></view>
-
-      <view class="absolute h-42 w-42 rounded-full bg-white opacity-10 -right-10 -top-10"></view>
-      <view class="absolute bottom-0 right-20 h-20 w-20 rounded-full bg-white opacity-10"></view>
+      <view class="absolute inset-0 bg-transparent"></view>
 
       <view class="h-[--safe-top]"></view>
 
@@ -144,7 +107,7 @@ async function handleLogout() {
         @click="handleLogin"
         @tap="handleLogin"
       >
-        <view class="h-18 w-18 overflow-hidden bg-white border-2 border-white/30 rounded-full shadow-lg">
+        <view class="h-22 w-22 overflow-hidden bg-white border-2 border-white/30 rounded-full shadow-lg">
           <image
             :src="avatarSrc"
             alt="用户头像"
@@ -154,8 +117,11 @@ async function handleLogout() {
         </view>
 
         <view class="ml-4 flex-1">
-          <view v-if="isLogin && userInfo && userInfo.username" class="text-xl text-white font-bold">
+          <view v-if="isLogin && userInfo && userInfo.username" class="text-xl text-black font-bold">
             {{ userInfo.username }}
+            <view v-if="userInfo.userId" class="text-sm text-gray-400 font-normal mt-1">
+              UID: {{ userInfo.userId }}
+            </view>
           </view>
           <view v-else class="flex items-center">
             <view class="text-xl text-white font-medium">
@@ -166,59 +132,42 @@ async function handleLogout() {
             </view>
           </view>
         </view>
-
-        <view v-if="isLogin" class="flex items-center text-white/70">
-          <view>编辑个人资料</view>
-          <view class="i-carbon-chevron-right size-6"></view>
-        </view>
       </view>
     </view>
 
-    <view class="mx-3 mt-3 overflow-hidden rounded-xl shadow-sm">
-      <view
-        v-for="(item, index) of systemItems"
-        :key="index"
-        class="flex items-center bg-white px-5 py-4 transition-colors duration-200 active:bg-gray-50"
-        :class="[
-          index !== systemItems.length - 1 ? 'border-b border-gray-100' : '',
-        ]"
-        hover-class="bg-gray-50"
-        @click="handleMenuItemClick(item)"
-      >
-        <view class="w-10 flex flex-none items-center justify-center text-gray-500">
-          <view class="size-6 text-primary-500" :class="item.icon"></view>
-        </view>
-
-        <view class="flex-1 text-gray-700 font-medium">
-          {{ item.text }}
-        </view>
-        <view class="text-gray-400">
-          <view class="i-carbon-chevron-right size-5"></view>
-        </view>
-      </view>
-    </view>
-
-    <view v-if="isLogin" class="mb-8 mt-auto px-5">
+    <view v-if="isLogin" class="mb-8 mt-auto px-5 space-y-4">
       <button
-        class="w-full bg-red-500 py-3 text-gray-50 font-medium transition-colors duration-200 !rounded-lg"
-        hover-class="bg-red-700"
+        class="w-full bg-gray-100 py-3 text-gray-800 font-medium transition-colors duration-200 !rounded-lg flex items-center justify-center"
+        hover-class="bg-gray-200"
+      >
+        <view class="i-carbon-edit mr-2 text-lg text-black"></view>
+        修改信息
+      </button>
+
+      <button
+        class="w-full bg-gray-100 py-3 text-gray-800 font-medium transition-colors duration-200 !rounded-lg flex items-center justify-center"
+        hover-class="bg-gray-200"
+      >
+        <view class="i-carbon-password mr-2 text-lg text-black"></view>
+        账号安全
+      </button>
+
+      <button
+        class="w-full bg-gray-100 py-3 text-gray-800 font-medium transition-colors duration-200 !rounded-lg flex items-center justify-center"
+        hover-class="bg-gray-200"
+      >
+        <view class="i-carbon-information mr-2 text-lg text-black"></view>
+        关于
+      </button>
+
+      <button
+        class="w-full bg-gray-100 py-3 text-red font-medium transition-colors duration-200 !rounded-lg"
+        hover-class="bg-gray-200"
         @click="handleLogout"
       >
         退出登录
       </button>
     </view>
 
-    <view v-else class="mb-6 mt-auto text-center text-xs text-gray-400">
-      <view>
-        Supported by
-        <text
-          class="text-primary-500 underline active:text-primary-700"
-          @click="onEnterpriseClick"
-        >
-          {{ appExtra.name }}
-        </text>
-        v{{ appVersion }}
-      </view>
-    </view>
   </view>
 </template>
