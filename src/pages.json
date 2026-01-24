@@ -110,6 +110,14 @@
             "navigationBarTitleText": "个人资料",
             "transparentTitle": "auto"
           }
+        },
+        {
+          "path": "edit/index",
+          "aliasPath": "/personal/edit",
+          "name": "personal-edit",
+          "style": {
+            "navigationBarTitleText": "修改信息"
+          }
         }
       ]
     },

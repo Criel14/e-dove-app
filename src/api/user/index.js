@@ -15,3 +15,7 @@ export function postUserRegister(data) {
 export function getUserInfo() {
   return alova.Get('/user/info')
 }
+
+export function putUserUpdate(data) {
+  return alova.Put('/user/update', data)
+}

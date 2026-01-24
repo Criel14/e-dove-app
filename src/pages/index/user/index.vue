@@ -1,6 +1,6 @@
 <script setup>
 import { showModal, showToast } from '@uni-helper/uni-promises'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onShow, ref } from 'vue'
 import { sleep } from '@/utils'
 
 const userStore = useUserStore()
@@ -22,10 +22,7 @@ async function fetchUserInfo() {
     return
   }
 
-  // 如果已有用户信息，不再重复获取
-  if (userInfo.value && userInfo.value.userId) {
-    return
-  }
+  // 每次调用都重新获取用户信息，确保数据最新
 
   try {
     isLoading.value = true
@@ -45,6 +42,13 @@ async function fetchUserInfo() {
 
 onMounted(() => {
   // 页面加载时，如果已登录但用户信息为空，则获取用户信息
+  if (isLogin.value) {
+    fetchUserInfo()
+  }
+})
+
+onShow(() => {
+  // 页面显示时重新获取用户信息，确保数据最新
   if (isLogin.value) {
     fetchUserInfo()
   }
@@ -89,6 +93,13 @@ async function handleLogout() {
       path: '/login',
     })
   }
+}
+
+// 跳转到修改信息页面
+function openEditModal() {
+  router.push({
+    path: '/personal/edit',
+  })
 }
 </script>
 
@@ -139,6 +150,7 @@ async function handleLogout() {
       <button
         class="w-full bg-gray-100 py-3 text-gray-800 font-medium transition-colors duration-200 !rounded-lg flex items-center justify-center"
         hover-class="bg-gray-200"
+        @click="openEditModal"
       >
         <view class="i-carbon-edit mr-2 text-lg text-black"></view>
         修改信息
@@ -167,6 +179,7 @@ async function handleLogout() {
       >
         退出登录
       </button>
+
     </view>
 
   </view>
