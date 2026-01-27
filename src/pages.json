@@ -110,6 +110,22 @@
             "navigationBarTitleText": "个人资料",
             "transparentTitle": "auto"
           }
+        },
+        {
+          "path": "edit/index",
+          "aliasPath": "/personal/edit",
+          "name": "personal-edit",
+          "style": {
+            "navigationBarTitleText": "修改信息"
+          }
+        },
+        {
+          "path": "security/index",
+          "aliasPath": "/personal/security",
+          "name": "personal-security",
+          "style": {
+            "navigationBarTitleText": "账号安全"
+          }
         }
       ]
     },
@@ -157,7 +173,8 @@
   ],
   "tabBar": {
     "color": "#999999",
-    "selectedColor": "#3b82f6",
+    "selectedColor": "#0080ff",
+    "borderStyle": "white",
     "backgroundColor": "#FFFFFF",
     "list": [
       {
