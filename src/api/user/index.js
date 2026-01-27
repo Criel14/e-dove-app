@@ -23,3 +23,7 @@ export function putUserUpdate(data) {
 export function refresh(data) {
   return alova.Post('/auth/refresh', data)
 }
+
+export function patchAuthPassword(data) {
+  return alova.Patch('/auth/password', data)
+}

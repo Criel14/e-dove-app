@@ -102,6 +102,13 @@ function openEditModal() {
     path: '/personal/edit',
   })
 }
+
+// 跳转到账号安全页面
+function openSecurityPage() {
+  router.push({
+    path: '/personal/security',
+  })
+}
 </script>
 
 <template>
@@ -160,6 +167,7 @@ function openEditModal() {
       <button
         class="w-full bg-gray-100 py-3 text-gray-800 font-medium transition-colors duration-200 !rounded-lg flex items-center justify-center"
         hover-class="bg-gray-200"
+        @click="openSecurityPage"
       >
         <view class="i-carbon-password mr-2 text-lg text-black"></view>
         账号安全

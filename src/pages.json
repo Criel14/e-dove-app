@@ -118,6 +118,14 @@
           "style": {
             "navigationBarTitleText": "修改信息"
           }
+        },
+        {
+          "path": "security/index",
+          "aliasPath": "/personal/security",
+          "name": "personal-security",
+          "style": {
+            "navigationBarTitleText": "账号安全"
+          }
         }
       ]
     },
