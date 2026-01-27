@@ -70,6 +70,7 @@
     "alova": "~3.2.11",
     "color": "~5.0.0",
     "es-toolkit": "~1.38.0",
+    "jsbarcode": "^3.12.3",
     "pinia": "~2.0.36",
     "pinia-plugin-persistedstate": "~3.2.1",
     "uniapp-router-next": "~1.2.7",

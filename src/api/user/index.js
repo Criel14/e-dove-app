@@ -27,3 +27,7 @@ export function refresh(data) {
 export function patchAuthPassword(data) {
   return alova.Patch('/auth/password', data)
 }
+
+export function getUserBarcode() {
+  return alova.Get('/user/barcode')
+}
