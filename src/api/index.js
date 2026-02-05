@@ -48,23 +48,32 @@ const alova = createAlova({
 
       // 401请求重新定位到登录页
       if (response.statusCode === 401) {
+        console.log('用户身份令牌已过期，正在重新获取')
         // 调用接口刷新token
         const refreshToken = userStore.refreshToken
         if (refreshToken) {
           const data = {}
           data.refreshToken = refreshToken
 
-          const result = await refresh(data)
-          if (result.status && result.data && result.data.accessToken && result.data.refreshToken) {
-            // 更新token
-            userStore.token = result.data.accessToken
-            userStore.refreshToken = result.data.refreshToken
+          try {
+            const result = await refresh(data)
+            if (result.status && result.data && result.data.accessToken && result.data.refreshToken) {
+              // 更新token
+              userStore.token = result.data.accessToken
+              userStore.refreshToken = result.data.refreshToken
 
-            // 重新发起请求
-            return await response.request()
+              console.log('用户身份令牌刷新成功，但无法自动重新发起请求')
+              // 重新发起请求（下面的代码无法实现）
+              // return await response.request()
+              return
+            }
+          }
+          catch (e) {
+            console.log('刷新用户身份令牌失败')
           }
         }
 
+        console.log('自动登出')
         // 清除token和用户信息
         userStore.logout()
         // 信息提示
