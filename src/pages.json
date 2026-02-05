@@ -169,6 +169,20 @@
           }
         }
       ]
+    },
+    {
+      "root": "pages/parcel",
+      "pages": [
+        {
+          "path": "received/index",
+          "aliasPath": "/parcel/received",
+          "name": "parcel-received",
+          "style": {
+            "navigationBarTitleText": "已签收包裹",
+            "transparentTitle": "auto"
+          }
+        }
+      ]
     }
   ],
   "tabBar": {

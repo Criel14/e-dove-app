@@ -2,11 +2,13 @@
 import { onShow } from '@dcloudio/uni-app'
 import { showModal, showToast } from '@uni-helper/uni-promises'
 import { computed, onMounted, ref } from 'vue'
+import { getParcelUserCount } from '@/api/parcel/index.js'
 import { sleep } from '@/utils'
 
 const userStore = useUserStore()
 const router = useRouter()
 const isLoading = ref(false)
+const parcelCount = ref(0)
 
 const isLogin = computed(() => !!userStore.token)
 const userInfo = computed(() => userStore.userInfo)
@@ -15,6 +17,13 @@ const avatarSrc = computed(() => {
     return userInfo.value.avatarUrl
   }
   return '~@assets/images/avatar.gif'
+})
+
+const parcelCountText = computed(() => {
+  if (parcelCount.value <= 99) {
+    return `已签收${parcelCount.value}个包裹`
+  }
+  return '已签收99+个包裹'
 })
 
 // 获取用户信息
@@ -41,10 +50,28 @@ async function fetchUserInfo() {
   }
 }
 
+// 获取已签收包裹数量
+async function fetchParcelCount() {
+  if (!isLogin.value) {
+    return
+  }
+
+  try {
+    const res = await getParcelUserCount()
+    if (res.status) {
+      parcelCount.value = res.data.count
+    }
+  }
+  catch (error) {
+    console.error('获取包裹数量失败:', error)
+  }
+}
+
 onMounted(() => {
   // 页面加载时，如果已登录但用户信息为空，则获取用户信息
   if (isLogin.value) {
     fetchUserInfo()
+    fetchParcelCount()
   }
 })
 
@@ -52,6 +79,7 @@ onShow(() => {
   // 页面显示时重新获取用户信息，确保数据最新
   if (isLogin.value) {
     fetchUserInfo()
+    fetchParcelCount()
   }
 })
 
@@ -109,12 +137,19 @@ function openSecurityPage() {
     path: '/personal/security',
   })
 }
+
+// 跳转到已签收包裹页面
+function openParcelReceived() {
+  router.push({
+    path: '/parcel/received',
+  })
+}
 </script>
 
 <template>
   <view class="h-full flex flex-col">
     <view
-      class="relative overflow-hidden"
+      class="relative overflow-hidden mb-1"
     >
       <view class="absolute inset-0 bg-transparent"></view>
 
@@ -154,6 +189,23 @@ function openSecurityPage() {
       </view>
     </view>
 
+    <!-- 已签收包裹数量 -->
+    <view v-if="isLogin" class="mx-5 mt-0 mb-8">
+      <view class="rounded-lg p-4 flex items-center justify-between" style="background-color: #dfefff">
+        <view class="flex items-center text-gray-800 font-medium">
+          <view class="i-carbon-delivery-parcel mr-2 text-lg text-gray-800"></view>
+          {{ parcelCountText }}
+        </view>
+        <button
+          class="bg-white text-gray-800 px-4 py-2 rounded-md text-sm font-medium"
+          hover-class="bg-gray-100"
+          @click="openParcelReceived"
+        >
+          查看
+        </button>
+      </view>
+    </view>
+
     <view v-if="isLogin" class="mb-8 mt-auto px-5 space-y-4">
       <button
         class="w-full bg-gray-100 py-3 text-gray-800 font-medium transition-colors duration-200 !rounded-lg flex items-center justify-center"
@@ -188,8 +240,6 @@ function openSecurityPage() {
       >
         退出登录
       </button>
-
     </view>
-
   </view>
 </template>

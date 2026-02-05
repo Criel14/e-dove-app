@@ -10,7 +10,8 @@
       "Bash(tree:*)",
       "Bash(pnpm list:*)",
       "Bash(pnpm add:*)",
-      "Bash(pnpm lint:fix:*)"
+      "Bash(pnpm lint:fix:*)",
+      "Bash(node:*)"
     ]
   }
 }
