@@ -156,7 +156,7 @@ function openParcelReceived() {
       <view class="h-[--safe-top]"></view>
 
       <view
-        class="relative flex items-center px-6 pb-12 pt-12"
+        class="relative flex items-center px-6 pb-8 pt-12"
         hover-class="opacity-90"
         @click="handleLogin"
         @tap="handleLogin"
@@ -190,7 +190,7 @@ function openParcelReceived() {
     </view>
 
     <!-- 已签收包裹数量 -->
-    <view v-if="isLogin" class="mx-5 mt-0 mb-8">
+    <view v-if="isLogin" class="mx-5 mt-0 mb-6">
       <view class="rounded-lg p-4 flex items-center justify-between" style="background-color: #dfefff">
         <view class="flex items-center text-gray-800 font-medium">
           <view class="i-carbon-delivery-parcel mr-2 text-lg text-gray-800"></view>
@@ -206,40 +206,61 @@ function openParcelReceived() {
       </view>
     </view>
 
-    <view v-if="isLogin" class="mb-8 mt-auto px-5 space-y-4">
-      <button
-        class="w-full bg-gray-100 py-3 text-gray-800 font-medium transition-colors duration-200 !rounded-lg flex items-center justify-center"
-        hover-class="bg-gray-200"
-        @click="openEditModal"
-      >
-        <view class="i-carbon-edit mr-2 text-lg text-black"></view>
-        修改信息
-      </button>
+    <!-- 功能按钮区域 -->
+    <view v-if="isLogin" class="mx-5 mt-0 mb-8 pt-6 border-t border-gray-200">
+      <!-- 隐私服务 -->
+      <view class="mb-6">
+        <view class="text-sm text-gray-500 font-medium mb-3">隐私服务</view>
+        <view class="flex flex-row gap-2">
+          <!-- 修改信息按钮 -->
+          <button
+            class="flex flex-col items-center justify-center w-20 aspect-square bg-gray-50 rounded-lg transition-colors duration-200"
+            hover-class="bg-gray-100"
+            @click="openEditModal"
+          >
+            <view class="i-carbon-edit text-2xl text-gray-800 mb-2"></view>
+            <text class="text-xs text-gray-800 font-medium">修改信息</text>
+          </button>
 
-      <button
-        class="w-full bg-gray-100 py-3 text-gray-800 font-medium transition-colors duration-200 !rounded-lg flex items-center justify-center"
-        hover-class="bg-gray-200"
-        @click="openSecurityPage"
-      >
-        <view class="i-carbon-password mr-2 text-lg text-black"></view>
-        账号安全
-      </button>
+          <!-- 账号安全按钮 -->
+          <button
+            class="flex flex-col items-center justify-center w-20 aspect-square bg-gray-50 rounded-lg transition-colors duration-200"
+            hover-class="bg-gray-100"
+            @click="openSecurityPage"
+          >
+            <view class="i-carbon-password text-2xl text-gray-800 mb-2"></view>
+            <text class="text-xs text-gray-800 font-medium">账号安全</text>
+          </button>
+        </view>
+      </view>
 
-      <button
-        class="w-full bg-gray-100 py-3 text-gray-800 font-medium transition-colors duration-200 !rounded-lg flex items-center justify-center"
-        hover-class="bg-gray-200"
-      >
-        <view class="i-carbon-information mr-2 text-lg text-black"></view>
-        关于
-      </button>
+      <!-- 分隔线 -->
+      <view class="border-t border-gray-200 mb-6"></view>
 
-      <button
-        class="w-full bg-gray-100 py-3 text-red font-medium transition-colors duration-200 !rounded-lg"
-        hover-class="bg-gray-200"
-        @click="handleLogout"
-      >
-        退出登录
-      </button>
+      <!-- 其他服务 -->
+      <view>
+        <view class="text-sm text-gray-500 font-medium mb-3">其他服务</view>
+        <view class="flex flex-row gap-2">
+          <!-- 关于按钮 -->
+          <button
+            class="flex flex-col items-center justify-center w-20 aspect-square bg-gray-50 rounded-lg transition-colors duration-200"
+            hover-class="bg-gray-100"
+          >
+            <view class="i-carbon-information text-2xl text-gray-800 mb-2"></view>
+            <text class="text-xs text-gray-800 font-medium">关于</text>
+          </button>
+
+          <!-- 退出登录按钮 -->
+          <button
+            class="flex flex-col items-center justify-center w-20 aspect-square bg-gray-50 rounded-lg transition-colors duration-200"
+            hover-class="bg-gray-100"
+            @click="handleLogout"
+          >
+            <view class="i-carbon-logout text-2xl text-red mb-2"></view>
+            <text class="text-xs text-red font-medium">退出登录</text>
+          </button>
+        </view>
+      </view>
     </view>
   </view>
 </template>
