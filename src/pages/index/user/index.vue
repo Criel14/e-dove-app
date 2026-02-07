@@ -144,6 +144,13 @@ function openParcelReceived() {
     path: '/parcel/received',
   })
 }
+
+// 跳转到关于页面
+function openAboutPage() {
+  router.push({
+    path: '/about',
+  })
+}
 </script>
 
 <template>
@@ -245,6 +252,7 @@ function openParcelReceived() {
           <button
             class="flex flex-col items-center justify-center w-20 aspect-square bg-gray-50 rounded-lg transition-colors duration-200"
             hover-class="bg-gray-100"
+            @click="openAboutPage"
           >
             <view class="i-carbon-information text-2xl text-gray-800 mb-2"></view>
             <text class="text-xs text-gray-800 font-medium">关于</text>

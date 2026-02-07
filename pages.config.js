@@ -154,6 +154,20 @@ export default defineUniPages({
         },
       ],
     },
+    {
+      root: 'pages/about',
+      pages: [
+        {
+          path: 'index',
+          aliasPath: '/about',
+          name: 'about',
+          style: {
+            navigationBarTitleText: '关于',
+            transparentTitle: 'auto',
+          },
+        },
+      ],
+    },
   ],
   tabBar: {
     color: '#999999',
