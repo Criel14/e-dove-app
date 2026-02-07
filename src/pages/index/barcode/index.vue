@@ -87,27 +87,43 @@ onMounted(async () => {
 </script>
 
 <template>
-  <view class="flex flex-col items-center p-[40rpx] min-h-screen mt-[100rpx]">
-    <view class="w-full text-center mb-[40rpx]">
-      <text class="text-[36rpx] font-bold">
-        {{ formattedPhone }}
-      </text>
-    </view>
-    <view class="flex flex-col items-center mb-[60rpx] w-[90vw]">
-      <canvas
-        class="barcode-canvas border border-solid border-[#eee] bg-white"
-        canvas-id="barcodeCanvas"
-        type="2d"
-        style="width:600rpx;height:300rpx;"
-      ></canvas>
-      <view class="mt-[20rpx] py-[10rpx] px-[20rpx] bg-[#f5f5f5] rounded-[8rpx] text-[28rpx] text-[#666]">
-        <text>{{ barcodeData }}</text>
+  <view class="flex flex-col items-center p-[40rpx] min-h-screen mt-[120rpx]">
+    <view class="w-full max-w-[700rpx] bg-white rounded-xl shadow-sm p-[30rpx]">
+      <view class="w-full text-center mb-[30rpx]">
+        <text class="text-[36rpx] font-bold">
+          {{ formattedPhone }}
+        </text>
+      </view>
+      <view class="flex flex-col items-center mb-[30rpx] w-full">
+        <canvas
+          class="barcode-canvas border border-solid border-[#eee] bg-white"
+          canvas-id="barcodeCanvas"
+          type="2d"
+          style="width:600rpx;height:300rpx;"
+        ></canvas>
+        <view class="mt-[20rpx] py-[10rpx] px-[20rpx] bg-[#f5f5f5] rounded-[8rpx] text-[28rpx] text-[#666]">
+          <text>{{ barcodeData }}</text>
+        </view>
+      </view>
+      <view class="flex gap-[40rpx] justify-center">
+        <button class="py-[20rpx] px-[60rpx] rounded-[20rpx] text-[32rpx] border-none bg-[#f0f0f0] text-[#333]" :loading="loading" @click="refreshBarcode">
+          刷新
+        </button>
       </view>
     </view>
-    <view class="flex gap-[40rpx] justify-center">
-      <button class="py-[20rpx] px-[60rpx] rounded-[20rpx] text-[32rpx] border-none bg-[#f0f0f0] text-[#333]" :loading="loading" @click="refreshBarcode">
-        刷新
-      </button>
+    <view class="w-full max-w-[700rpx] mt-[50rpx] flex flex-col gap-[20rpx]">
+      <view class="flex items-start gap-[10rpx]">
+        <view class="i-carbon-security text-[24rpx] text-primary-500 mt-[2rpx]"></view>
+        <text class="text-[24rpx] text-gray-400 flex-1">
+          为了您的信息安全，请勿将身份码截图分享给他人
+        </text>
+      </view>
+      <view class="flex items-start gap-[10rpx]">
+        <view class="i-carbon-information text-[24rpx] text-primary-500 mt-[2rpx]"></view>
+        <text class="text-[24rpx] text-gray-400 flex-1">
+          请将身份码与包裹条形码一同展示给驿站机器
+        </text>
+      </view>
     </view>
   </view>
 </template>
