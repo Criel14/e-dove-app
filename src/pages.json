@@ -181,6 +181,15 @@
             "navigationBarTitleText": "近30日已签收包裹",
             "transparentTitle": "auto"
           }
+        },
+        {
+          "path": "query/index",
+          "aliasPath": "/parcel/query",
+          "name": "parcel-query",
+          "style": {
+            "navigationBarTitleText": "包裹查询",
+            "transparentTitle": "auto"
+          }
         }
       ]
     },
