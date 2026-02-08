@@ -16,7 +16,7 @@ function goToParcelQuery() {
     <!-- 第一部分：顶部搜索框 -->
     <view class="px-4 pt-8 pb-6">
       <view
-        class="flex items-center bg-white rounded-md rounded-2xl px-4 py-3 border-1 border-gray-300 active:scale-98 transition-transform duration-150"
+        class="flex items-center bg-white rounded-md px-4 py-3 border-1 border-gray-300 active:scale-98 transition-transform duration-150"
         @click="goToParcelQuery"
       >
         <!-- 放大镜搜索图标 -->

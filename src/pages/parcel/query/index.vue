@@ -168,13 +168,13 @@ async function searchParcel() {
     <view class="h-[--safe-top]"></view>
 
     <!-- 顶部真正的输入框 -->
-    <view class="px-4 pt-4 pb-6">
+    <view class="px-4 pt-2 pb-6">
       <view class="flex items-center space-x-3">
         <!-- 输入框 -->
         <view class="flex-1">
           <input
             v-model="trackingNumber"
-            class="w-full h-12 bg-white rounded-2xl px-5 py-4 text-base border-1 border-gray-300 focus:border-blue-500 focus:outline-none leading-none"
+            class="w-full h-12 bg-white rounded-sm rounded-2xl px-5 py-4 text-base border-1 border-gray-300 focus:border-blue-500 focus:outline-none leading-none"
             placeholder="输入运单号查询包裹"
             placeholder-class="text-gray-400"
             :disabled="isLoading"
@@ -184,7 +184,7 @@ async function searchParcel() {
 
         <!-- 查询按钮 -->
         <button
-          class="rounded-2xl h-12 ml-1 bg-blue-500 px-5 py-4 text-base text-white font-medium border-2 border-blue-500 leading-none active:scale-95 transition-transform disabled:opacity-50"
+          class="rounded-2xl h-12 ml-1 rounded-sm bg-blue-500 px-5 py-4 text-base text-white font-medium border-2 border-blue-500 leading-none active:scale-95 transition-transform disabled:opacity-50"
           :disabled="isLoading"
           @click="searchParcel"
         >
@@ -195,7 +195,7 @@ async function searchParcel() {
 
     <!-- 包裹信息显示区域 -->
     <view v-if="parcelData" class="px-4 pb-8">
-      <view class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <view class="bg-white rounded-sm shadow-sm border border-gray-100 overflow-hidden">
         <!-- 包裹信息卡片 -->
         <view class="p-5">
           <view class="flex items-start space-x-4">

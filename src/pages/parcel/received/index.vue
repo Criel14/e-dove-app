@@ -172,17 +172,18 @@ function handleItemClick(item) {
         </view>
       </template>
 
-      <view class="px-4 py-2 space-y-3">
+      <view>
         <view
-          v-for="item in dataList"
+          v-for="(item, index) in dataList"
           :key="item.id"
-          class="overflow-hidden border border-gray-100 rounded-2xl bg-white shadow-sm transition-all duration-200 active:scale-98"
+          class="bg-white transition-all duration-200 active:bg-gray-50"
+          :class="{ 'border-b border-gray-100': index !== dataList.length - 1 }"
           @click="handleItemClick(item)"
         >
           <view class="p-4">
-            <view class="flex items-start space-x-4">
+            <view class="flex items-start">
               <!-- 快递公司Logo -->
-              <view class="flex-shrink-0">
+              <view class="flex-shrink-0 ml-5">
                 <image
                   v-if="item.companyInfo.logo"
                   :src="item.companyInfo.logo"
@@ -198,14 +199,14 @@ function handleItemClick(item) {
               </view>
 
               <!-- 包裹信息 -->
-              <view class="min-w-0 flex-1">
+              <view class="min-w-0 flex-1 ml-8">
                 <!-- 签收时间 -->
                 <text class="text-base text-gray-900 font-semibold leading-tight">
                   {{ item.signedText }}
                 </text>
 
                 <!-- 运单号 -->
-                <view class="mt-2">
+                <view class="mt-1">
                   <text class="text-xs text-gray-600">运单号: </text>
                   <text class="text-xs text-gray-900 font-medium">
                     {{ item.trackingNumber || '未知' }}
@@ -213,7 +214,7 @@ function handleItemClick(item) {
                 </view>
 
                 <!-- 快递公司 -->
-                <view class="mt-1">
+                <view class="mt-0.5">
                   <text class="text-xs text-gray-600">快递公司: </text>
                   <text class="text-xs text-gray-900 font-medium">
                     {{ item.companyInfo.name }}
