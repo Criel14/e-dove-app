@@ -1,11 +1,37 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { getParcelUserInfo } from '@/api/parcel/index.js'
 
 const router = useRouter()
 const pagingRef = ref(null)
 const dataList = ref([])
 const isLoading = ref(false)
+
+// 按门店分组的数据
+const groupedByStore = computed(() => {
+  const groups = {}
+
+  dataList.value.forEach((item) => {
+    const storeId = item.storeId || 'unknown'
+    const storeName = item.storeName || '未知门店'
+
+    if (!groups[storeId]) {
+      groups[storeId] = {
+        storeId,
+        storeName,
+        parcels: [],
+      }
+    }
+
+    groups[storeId].parcels.push(item)
+  })
+
+  // 转换为数组并排序（可以按门店名称或其他逻辑排序）
+  return Object.values(groups).sort((a, b) => {
+    // 按门店名称排序
+    return a.storeName.localeCompare(b.storeName)
+  })
+})
 
 // 快递公司映射
 const companyMap = {
@@ -120,7 +146,7 @@ function handleItemClick(item) {
   <view class="h-full bg-gray-50 flex flex-col">
     <view class="h-[--safe-top]"></view>
 
-    <!-- 第二部分：用户的待取包裹 -->
+    <!-- 用户的待取包裹信息 -->
     <view class="flex-1 overflow-hidden">
       <z-paging
         ref="pagingRef"
@@ -157,8 +183,9 @@ function handleItemClick(item) {
               </text>
             </view>
             <!-- 待取包裹标题 -->
-            <view class="mt-3 mb-1">
-              <text class="text-lg font-bold text-gray-900">
+            <view class="mt-3 mb-1 flex items-center">
+              <view class="i-carbon-product mr-1 mt-1 h-7 w-7 text-gray-800"></view>
+              <text class="text-lg font-bold text-gray-800">
                 待取包裹
               </text>
             </view>
@@ -177,51 +204,69 @@ function handleItemClick(item) {
 
         <!-- 待取包裹列表 -->
         <view class="px-4 pt-3 border-t border-gray-200">
+          <!-- 遍历门店分组 -->
           <view
-            v-for="(item, index) in dataList"
-            :key="item.id"
-            class="bg-white rounded-xl mb-4 transition-all duration-200 active:bg-gray-50"
-            @click="handleItemClick(item)"
+            v-for="store in groupedByStore"
+            :key="store.storeId"
+            class="mb-6"
           >
-            <view class="p-4">
-              <view class="flex items-start">
-                <!-- 快递公司Logo -->
-                <view class="flex-shrink-0">
-                  <image
-                    v-if="item.companyInfo.logo"
-                    :src="item.companyInfo.logo"
-                    class="h-16 w-16 rounded-lg"
-                    mode="aspectFit"
-                  />
-                  <view
-                    v-else
-                    class="h-16 w-16 flex items-center justify-center rounded-lg bg-gray-100"
-                  >
-                    <text class="text-xs text-gray-400">
-                      无Logo
-                    </text>
+            <!-- 门店标题 -->
+            <view class="mb-3">
+              <view class="flex items-center">
+                <view class="i-carbon-store mr-2 h-5 w-5 text-blue-600"></view>
+                <text class="text-lg font-semibold text-gray-900">
+                  {{ store.storeName }}
+                </text>
+              </view>
+            </view>
+
+            <!-- 门店下的包裹列表 -->
+            <view
+              v-for="item in store.parcels"
+              :key="item.id"
+              class="bg-white rounded-xl mb-4 transition-all duration-200 active:bg-gray-50"
+              @click="handleItemClick(item)"
+            >
+              <view class="p-4">
+                <view class="flex items-start">
+                  <!-- 快递公司Logo -->
+                  <view class="flex-shrink-0">
+                    <image
+                      v-if="item.companyInfo.logo"
+                      :src="item.companyInfo.logo"
+                      class="h-18 w-18 rounded-lg"
+                      mode="aspectFit"
+                    />
+                    <view
+                      v-else
+                      class="h-16 w-16 flex items-center justify-center rounded-lg bg-gray-100"
+                    >
+                      <text class="text-xs text-gray-400">
+                        无Logo
+                      </text>
+                    </view>
                   </view>
-                </view>
 
-                <!-- 包裹信息 -->
-                <view class="min-w-0 flex-1 ml-4">
-                  <!-- 取件码 - 大字体加粗 -->
-                  <text class="text-xl text-gray-900 font-bold leading-tight block">
-                    {{ item.pickCode || '无取件码' }}
-                  </text>
-
-                  <!-- 运单号 -->
-                  <view class="mt-2">
-                    <text class="text-sm text-gray-600">
-                      {{ item.trackingNumber || '未知运单号' }}
+                  <!-- 包裹信息 -->
+                  <view class="min-w-0 flex-1 ml-4">
+                    <!-- 取件码 - 大字体加粗 -->
+                    <text class="text-xl text-gray-900 font-bold leading-tight block">
+                      {{ item.pickCode || '无取件码' }}
                     </text>
-                  </view>
 
-                  <!-- 快递公司名称 -->
-                  <view class="mt-1">
-                    <text class="text-sm text-gray-900 font-medium">
-                      {{ item.companyInfo.name }}
-                    </text>
+                    <!-- 运单号 -->
+                    <view class="mt-2">
+                      <text class="text-sm text-gray-600">
+                        {{ item.trackingNumber || '未知运单号' }}
+                      </text>
+                    </view>
+
+                    <!-- 快递公司名称 -->
+                    <view class="mt-1">
+                      <text class="text-sm text-gray-900 font-medium">
+                        {{ item.companyInfo.name }}
+                      </text>
+                    </view>
                   </view>
                 </view>
               </view>
