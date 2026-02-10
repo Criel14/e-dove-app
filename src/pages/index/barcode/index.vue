@@ -101,7 +101,7 @@ onMounted(async () => {
           type="2d"
           style="width:600rpx;height:300rpx;"
         ></canvas>
-        <view class="mt-[20rpx] py-[10rpx] px-[20rpx] bg-[#f5f5f5] rounded-[8rpx] text-[28rpx] text-[#666]">
+        <view class="mt-[20rpx] py-[10rpx] px-[20rpx] bg-[#ffffff] rounded-[8rpx] text-[28rpx] text-[#666]">
           <text>{{ barcodeData }}</text>
         </view>
       </view>

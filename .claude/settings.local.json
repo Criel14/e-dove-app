@@ -11,7 +11,9 @@
       "Bash(pnpm list:*)",
       "Bash(pnpm add:*)",
       "Bash(pnpm lint:fix:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npx eslint:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }
