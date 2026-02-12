@@ -12,6 +12,19 @@ const parcelCount = ref(0)
 
 const isLogin = computed(() => !!userStore.token)
 const userInfo = computed(() => userStore.userInfo)
+const workRoleSet = new Set(['station_staff', 'station_admin', 'admin'])
+
+function getNormalizedRoles() {
+  const storeRoles = Array.isArray(userStore.roleNames) ? userStore.roleNames : []
+  const profileRoles = Array.isArray(userInfo.value?.roleNames) ? userInfo.value.roleNames : []
+  return [...storeRoles, ...profileRoles]
+    .filter(Boolean)
+    .map(role => String(role).trim().toLowerCase())
+}
+
+const hasWorkServicePermission = computed(() => {
+  return getNormalizedRoles().some(role => workRoleSet.has(role))
+})
 const avatarSrc = computed(() => {
   if (userInfo.value && userInfo.value.avatarUrl) {
     return userInfo.value.avatarUrl
@@ -151,6 +164,12 @@ function openAboutPage() {
     path: '/about',
   })
 }
+
+function openScanInPage() {
+  router.push({
+    path: '/index/scan-in',
+  })
+}
 </script>
 
 <template>
@@ -242,6 +261,20 @@ function openAboutPage() {
       </view>
 
       <!-- 分隔线 -->
+      <view v-if="hasWorkServicePermission" class="mb-6">
+        <view class="text-sm text-gray-500 font-medium mb-3">工作服务</view>
+        <view class="flex flex-row gap-2">
+          <button
+            class="flex flex-col items-center justify-center w-20 aspect-square bg-gray-50 rounded-lg transition-colors duration-200"
+            hover-class="bg-gray-100"
+            @click="openScanInPage"
+          >
+            <view class="i-carbon-product text-2xl text-gray-800 mb-2"></view>
+            <text class="text-xs text-gray-800 font-medium">包裹入库</text>
+          </button>
+        </view>
+      </view>
+
       <view class="border-t border-gray-200 mb-6"></view>
 
       <!-- 其他服务 -->

@@ -38,6 +38,15 @@ export default defineUniPages({
       },
     },
     {
+      path: 'pages/index/scan-in/index',
+      aliasPath: '/index/scan-in',
+      name: 'index-scan-in',
+      style: {
+        navigationStyle: 'default',
+        navigationBarTitleText: '包裹入库',
+      },
+    },
+    {
       path: 'pages/login/index',
       aliasPath: '/login',
       name: 'login',
