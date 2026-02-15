@@ -14,14 +14,13 @@ const screenInfo = uni.getSystemInfoSync()
 
 const viewportWidth = screenInfo.windowWidth || screenInfo.screenWidth || 375
 const viewportHeight = screenInfo.windowHeight || screenInfo.screenHeight || 667
+const fullscreenScale = 1.6
 
 const fullscreenCanvasStyle = computed(() => {
-  // 保持全屏条码画布比例为 2:1，避免旋转后被拉胖
-  const maxRotatedWidth = viewportWidth
-  const maxRotatedHeight = viewportHeight
-  const canvasHeight = Math.floor(Math.min(maxRotatedWidth, maxRotatedHeight / 2))
+  // 使用 cover 思路：旋转后优先覆盖全屏高度（保持 2:1，不拉伸）
+  const canvasHeight = Math.ceil(Math.max(viewportWidth, viewportHeight / 2))
   const canvasWidth = Math.floor(canvasHeight * 2)
-  return `width:${canvasWidth}px;height:${canvasHeight}px;transform: rotate(90deg);transform-origin: center center;`
+  return `width:${canvasWidth}px;height:${canvasHeight}px;transform: rotate(90deg) scale(${fullscreenScale});transform-origin: center center;`
 })
 
 // 格式化手机号
@@ -75,11 +74,11 @@ function renderBarcodeBySelector(selector, isFullscreenCanvas = false) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
 
       const moduleCount = Math.max(90, (barcodeData.value?.length || 0) * 11 + 35)
-      // 全屏时长度优先铺满（允许轻微超出后由 canvas 自然裁切）
+      // 全屏时长度优先铺满
       const idealBarWidth = Math.ceil((r.width * 0.995) / moduleCount)
       const fullBarWidth = Math.max(1, idealBarWidth)
       // 厚度不要跟着画布无限放大，否则会“变胖”
-      const fullBarHeight = Math.max(72, Math.min(Math.floor(r.height * 0.42), 168))
+      const fullBarHeight = Math.max(72, Math.min(Math.floor(r.height * 0.42), 188))
       const fullVerticalMargin = Math.max(0, Math.floor((r.height - fullBarHeight) / 2))
 
       jsbarcode(canvas, barcodeData.value, {
