@@ -268,7 +268,7 @@ onMounted(async () => {
 
 .barcode-fullscreen__value {
   position: absolute;
-  top: calc(24rpx + env(safe-area-inset-top));
+  bottom: calc(130rpx + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   padding: 10rpx 20rpx;
