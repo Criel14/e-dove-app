@@ -13,3 +13,7 @@ export function getParcelUserInfo(params) {
 export function getParcelByTrackingNumber(trackingNumber) {
   return alova.Get(`/parcel/${trackingNumber}`)
 }
+
+export function parcelIn(data) {
+  return alova.Post('/parcel/in', data)
+}
