@@ -36,6 +36,8 @@ pnpm dev:mp-weixin
 
 # 现存问题
 
+> 这些问题不影响正常使用
+
 ## 无感刷新token
 
 在 [src/api/index.js](https://github.com/Criel14/e-dove-app/blob/main/src/api/index.js#L50) 中，当接收到接口返回的401后，会调用接口刷新token，但成功后无法重新调用接口，因此无法做到无感刷新，用户再次点击接口才能正常使用；
@@ -48,3 +50,7 @@ return await response.request()
 ## 真机调试
 
 截止2026-02-15的微信开发者工具，在使用手机真机调试时，都会出现**无法连接局域网而切换至广域网**的问题，需要降低开发者工具版本到`1.06.2401020`，点击[这里](https://developers.weixin.qq.com/community/minihome/doc/000ea431ca0d4820ffd04b32d65401)下载；
+
+## 身份码放大
+
+在手机上真机调试没问题，但在模拟器或用PC端微信真机调试会出现一些样式问题；
