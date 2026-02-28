@@ -29,6 +29,15 @@ export default defineUniPages({
       },
     },
     {
+      path: 'pages/index/assistant/index',
+      aliasPath: '/assistant',
+      name: 'assistant',
+      style: {
+        navigationStyle: 'custom',
+        navigationBarTitleText: '智能助手',
+      },
+    },
+    {
       path: 'pages/index/user/index',
       aliasPath: '/user',
       name: 'user',
@@ -194,6 +203,12 @@ export default defineUniPages({
         selectedIconPath: 'static/images/tabbar/barcode-active.png',
         pagePath: 'pages/index/barcode/index',
         text: '身份码',
+      },
+      {
+        iconPath: 'static/images/tabbar/assistant.png',
+        selectedIconPath: 'static/images/tabbar/assistant-active.png',
+        pagePath: 'pages/index/assistant/index',
+        text: '智能助手',
       },
       {
         iconPath: 'static/images/tabbar/user.png',
