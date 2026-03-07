@@ -1,6 +1,6 @@
 <script setup>
-import { onUnload } from '@dcloudio/uni-app'
-import { showToast } from '@uni-helper/uni-promises'
+import { onShow, onUnload } from '@dcloudio/uni-app'
+import { showModal, showToast } from '@uni-helper/uni-promises'
 import { computed, nextTick, ref } from 'vue'
 import { getAssistantChatCreate } from '@/api/assistant/index.js'
 import { refresh } from '@/api/user/index.js'
@@ -25,6 +25,8 @@ const reconnectAttempt = ref(0)
 const maxReconnectAttempts = 5
 const heartbeatIntervalMs = 25000
 const reconnectBaseDelayMs = 1000
+const chatCacheKey = 'assistant_chat_session_v1'
+const chatCacheTtlMs = 48 * 60 * 60 * 1000
 
 const isSocketOpen = ref(false)
 const manualClose = ref(false)
@@ -33,6 +35,112 @@ const currentAssistantMessageId = ref('')
 const pendingPrompt = ref('')
 const refreshingToken = ref(false)
 const newSessionLoading = ref(false)
+
+function readCachedSession() {
+  try {
+    return uni.getStorageSync(chatCacheKey)
+  }
+  catch (error) {
+    console.error('读取智能助手本地缓存失败', error)
+    return null
+  }
+}
+
+function clearCachedSession() {
+  try {
+    uni.removeStorageSync(chatCacheKey)
+  }
+  catch (error) {
+    console.error('清理智能助手本地缓存失败', error)
+  }
+}
+
+function normalizeCachedMessages(rawMessages) {
+  if (!Array.isArray(rawMessages))
+    return []
+
+  return rawMessages
+    .filter(item => item && typeof item === 'object')
+    .map((item) => {
+      const role = item.role === 'assistant' ? 'assistant' : 'user'
+      return {
+        id: String(item.id || `${Date.now()}-${Math.random().toString(16).slice(2, 10)}`),
+        role,
+        content: String(item.content || ''),
+        state: role === 'assistant'
+          ? (['idle', 'waiting_ack', 'streaming', 'finished', 'failed'].includes(item.state) ? item.state : 'finished')
+          : 'finished',
+        error: String(item.error || ''),
+        prompt: String(item.prompt || ''),
+      }
+    })
+}
+
+function resetRoundRuntime() {
+  inputMessage.value = ''
+  pendingPrompt.value = ''
+  currentAssistantMessageId.value = ''
+  lastSeq.value = 0
+  scrollIntoViewId.value = ''
+  roundState.value = 'idle'
+}
+
+function persistSession({ renew = false } = {}) {
+  if (!memoryId.value || !Array.isArray(messages.value) || messages.value.length === 0)
+    return
+
+  const raw = readCachedSession()
+  const previousSavedAt = Number(raw?.savedAt)
+  const nextSavedAt = renew || !Number.isFinite(previousSavedAt) ? Date.now() : previousSavedAt
+  const payload = {
+    version: 1,
+    memoryId: String(memoryId.value),
+    savedAt: nextSavedAt,
+    messages: messages.value.map(item => ({
+      id: String(item.id || ''),
+      role: item.role === 'assistant' ? 'assistant' : 'user',
+      content: String(item.content || ''),
+      state: String(item.state || ''),
+      error: String(item.error || ''),
+      prompt: String(item.prompt || ''),
+    })),
+  }
+
+  try {
+    uni.setStorageSync(chatCacheKey, payload)
+  }
+  catch (error) {
+    console.error('保存智能助手本地缓存失败', error)
+  }
+}
+
+function loadSessionFromCache() {
+  const raw = readCachedSession()
+  if (!raw || typeof raw !== 'object')
+    return false
+
+  const savedAt = Number(raw.savedAt)
+  if (!Number.isFinite(savedAt) || Date.now() - savedAt > chatCacheTtlMs) {
+    clearCachedSession()
+    messages.value = []
+    memoryId.value = ''
+    resetRoundRuntime()
+    return false
+  }
+
+  const cachedMemoryId = String(raw.memoryId || '').trim()
+  const cachedMessages = normalizeCachedMessages(raw.messages)
+  if (!cachedMemoryId || !cachedMessages.length) {
+    clearCachedSession()
+    return false
+  }
+
+  memoryId.value = cachedMemoryId
+  messages.value = cachedMessages
+  resetRoundRuntime()
+  scrollToBottom()
+  return true
+}
 
 const isGenerating = computed(() => ['waiting_ack', 'streaming'].includes(roundState.value))
 const canSend = computed(() => !!inputMessage.value.trim() && !isGenerating.value)
@@ -120,6 +228,7 @@ function upsertAssistantMessage(patch) {
     ...messages.value[index],
     ...patch,
   }
+  persistSession()
   scrollToBottom()
 }
 
@@ -208,6 +317,7 @@ async function markRoundFailed(errorText, tryRefresh = true) {
     state: 'failed',
     error: errorText || '请求失败，请重试',
   })
+  persistSession()
 
   if (tryRefresh) {
     await refreshAccessTokenIfNeeded(errorText)
@@ -266,6 +376,7 @@ function handleSocketMessage(rawData) {
     currentMessage.content = `${currentMessage.content || ''}${chunk}`
     currentMessage.state = 'streaming'
     currentMessage.error = ''
+    persistSession()
     scrollToBottom()
     return
   }
@@ -281,6 +392,7 @@ function handleSocketMessage(rawData) {
       error: '',
     })
     pendingPrompt.value = ''
+    persistSession()
     return
   }
 
@@ -451,6 +563,7 @@ async function sendMessage(promptText, options = {}) {
 
   try {
     await ensureMemoryId()
+    persistSession({ renew: true })
     await connectSocket()
     await sendSocketData({
       type: 'chat',
@@ -498,16 +611,24 @@ async function createNewSession() {
     return
   }
 
+  if (messages.value.length > 0) {
+    const result = await showModal({
+      title: '提示',
+      content: '新建会话将会清空你现有的聊天内容，是否继续？',
+      showCancel: true,
+      confirmText: '继续',
+      cancelText: '取消',
+    })
+    if (!result.confirm)
+      return
+  }
+
   newSessionLoading.value = true
   closeSocket(true)
   messages.value = []
-  inputMessage.value = ''
+  clearCachedSession()
   memoryId.value = ''
-  pendingPrompt.value = ''
-  currentAssistantMessageId.value = ''
-  lastSeq.value = 0
-  scrollIntoViewId.value = ''
-  roundState.value = 'idle'
+  resetRoundRuntime()
 
   try {
     await ensureMemoryId()
@@ -529,6 +650,12 @@ async function createNewSession() {
 
 onUnload(() => {
   closeSocket(true)
+})
+
+onShow(() => {
+  if (!isGenerating.value) {
+    loadSessionFromCache()
+  }
 })
 </script>
 
