@@ -56,6 +56,15 @@ export default defineUniPages({
       },
     },
     {
+      path: 'pages/index/scan-out/index',
+      aliasPath: '/index/scan-out',
+      name: 'index-scan-out',
+      style: {
+        navigationStyle: 'default',
+        navigationBarTitleText: '包裹出库',
+      },
+    },
+    {
       path: 'pages/login/index',
       aliasPath: '/login',
       name: 'login',

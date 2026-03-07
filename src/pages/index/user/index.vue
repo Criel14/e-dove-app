@@ -170,6 +170,12 @@ function openScanInPage() {
     path: '/index/scan-in',
   })
 }
+
+function openScanOutPage() {
+  router.push({
+    path: '/index/scan-out',
+  })
+}
 </script>
 
 <template>
@@ -236,7 +242,9 @@ function openScanInPage() {
     <view v-if="isLogin" class="mx-5 mt-0 mb-8 pt-6 border-t border-gray-200">
       <!-- 隐私服务 -->
       <view class="mb-6">
-        <view class="text-sm text-gray-500 font-medium mb-3">隐私服务</view>
+        <view class="text-sm text-gray-500 font-medium mb-3">
+          隐私服务
+        </view>
         <view class="flex flex-row gap-2">
           <!-- 修改信息按钮 -->
           <button
@@ -245,7 +253,9 @@ function openScanInPage() {
             @click="openEditModal"
           >
             <view class="i-carbon-edit text-2xl text-gray-800 mb-2"></view>
-            <text class="text-xs text-gray-800 font-medium">修改信息</text>
+            <text class="text-xs text-gray-800 font-medium">
+              修改信息
+            </text>
           </button>
 
           <!-- 账号安全按钮 -->
@@ -255,22 +265,38 @@ function openScanInPage() {
             @click="openSecurityPage"
           >
             <view class="i-carbon-password text-2xl text-gray-800 mb-2"></view>
-            <text class="text-xs text-gray-800 font-medium">账号安全</text>
+            <text class="text-xs text-gray-800 font-medium">
+              账号安全
+            </text>
           </button>
         </view>
       </view>
 
       <!-- 分隔线 -->
       <view v-if="hasWorkServicePermission" class="mb-6">
-        <view class="text-sm text-gray-500 font-medium mb-3">工作服务</view>
+        <view class="text-sm text-gray-500 font-medium mb-3">
+          工作服务
+        </view>
         <view class="flex flex-row gap-2">
           <button
             class="flex flex-col items-center justify-center w-20 aspect-square bg-gray-50 rounded-lg transition-colors duration-200"
             hover-class="bg-gray-100"
             @click="openScanInPage"
           >
-            <view class="i-carbon-product text-2xl text-gray-800 mb-2"></view>
-            <text class="text-xs text-gray-800 font-medium">包裹入库</text>
+            <view class="i-carbon-connection-receive text-2xl text-gray-800 mb-2"></view>
+            <text class="text-xs text-gray-800 font-medium">
+              包裹入库
+            </text>
+          </button>
+          <button
+            class="flex flex-col items-center justify-center w-20 aspect-square bg-gray-50 rounded-lg transition-colors duration-200"
+            hover-class="bg-gray-100"
+            @click="openScanOutPage"
+          >
+            <view class="i-carbon-connection-send text-2xl text-gray-800 mb-2"></view>
+            <text class="text-xs text-gray-800 font-medium">
+              包裹出库
+            </text>
           </button>
         </view>
       </view>
@@ -279,7 +305,9 @@ function openScanInPage() {
 
       <!-- 其他服务 -->
       <view>
-        <view class="text-sm text-gray-500 font-medium mb-3">其他服务</view>
+        <view class="text-sm text-gray-500 font-medium mb-3">
+          其他服务
+        </view>
         <view class="flex flex-row gap-2">
           <!-- 关于按钮 -->
           <button
@@ -288,7 +316,9 @@ function openScanInPage() {
             @click="openAboutPage"
           >
             <view class="i-carbon-information text-2xl text-gray-800 mb-2"></view>
-            <text class="text-xs text-gray-800 font-medium">关于</text>
+            <text class="text-xs text-gray-800 font-medium">
+              关于
+            </text>
           </button>
 
           <!-- 退出登录按钮 -->
@@ -298,7 +328,9 @@ function openScanInPage() {
             @click="handleLogout"
           >
             <view class="i-carbon-logout text-2xl text-red mb-2"></view>
-            <text class="text-xs text-red font-medium">退出登录</text>
+            <text class="text-xs text-red font-medium">
+              退出登录
+            </text>
           </button>
         </view>
       </view>
