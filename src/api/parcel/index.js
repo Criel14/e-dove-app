@@ -15,9 +15,9 @@ export function getParcelByTrackingNumber(trackingNumber) {
 }
 
 export function parcelIn(data) {
-  return alova.Post('/parcel/in', data)
+  return alova.Put('/parcel/in', data)
 }
 
 export function parcelOut(data) {
-  return alova.Post('/parcel/out', data)
+  return alova.Put('/parcel/out', data)
 }
