@@ -3,3 +3,6 @@ dist
 *.ts
 *.local
 .hbuilderx
+.idea
+.vscode
+.claude
